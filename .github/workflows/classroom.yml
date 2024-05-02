@@ -1,0 +1,79 @@
+name: Autograding Tests
+'on':
+- push
+- workflow_dispatch
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Sample 1
+      id: sample-1
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: Sample 1
+        setup-command: ''
+        command: python3 main.py
+        input: |-
+          12
+          add 911 police
+          add 76213 Mom
+          add 17239 Bob
+          find 76213
+          find 910
+          find 911
+          del 910
+          del 911
+          find 911
+          find 76213
+          add 76213 daddy
+          find 76213
+        expected-output: |-
+          Mom
+          not found
+          police
+          not found
+          Mom
+          daddy
+        comparison-method: contains
+        timeout: 1
+        max-score: 0
+    - name: Sample 2
+      id: sample-2
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: Sample 2
+        setup-command: ''
+        command: python3 main.py
+        input: |-
+          8
+          find 3839442
+          add 123456 me
+          add 0 granny
+          find 0
+          find 123456
+          del 0
+          del 0
+          find 0
+        expected-output: |-
+          not found
+          granny
+          me
+          not found
+        comparison-method: contains
+        timeout: 1
+        max-score: 0
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        SAMPLE-1_RESULTS: "${{steps.sample-1.outputs.result}}"
+        SAMPLE-2_RESULTS: "${{steps.sample-2.outputs.result}}"
+      with:
+        runners: sample-1,sample-2
